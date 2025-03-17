@@ -1,0 +1,119 @@
+version: "3"
+volumes:
+  postgres_data:
+  storage-data:
+  https-portal-data:
+
+services:
+
+  postgres:
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-dbs.sh:/docker-entrypoint-initdb.d/init-dbs.sh
+    ports:
+      - "5433:5432"
+    environment:
+      POSTGRES_MULTIPLE_DATABASE: "keycloak,outline"
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    networks:
+      - stack
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:20.0.2
+    ports:
+      - "8080:8080"
+    command: start-dev
+    environment:
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres:5432/keycloak
+      KC_DB_PASSWORD: password
+      KC_DB_USERNAME: postgres
+      KC_DB_SCHEMA: public
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+    networks:
+      - stack
+    depends_on:
+      - postgres
+
+  outline:
+    image: docker.io/outlinewiki/outline
+    env_file: ./docker.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+      - redis
+      - storage
+    environment:
+      DATABASE_URL: postgres://postgres:password@postgres:5432/outline
+    networks:
+      - stack
+
+  redis:
+    image: docker.io/redis
+    env_file: ./docker.env
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis.conf:/redis.conf
+    command: ["redis-server", "/redis.conf"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 30s
+      retries: 3
+    networks:
+      - stack
+
+  storage:
+    image: quay.io/minio/minio
+    env_file: ./docker.env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    entrypoint: sh
+    command: -c 'minio server --console-address ":9001" /data/minio'
+    deploy:
+      restart_policy:
+        condition: on-failure
+    volumes:
+      - storage-data:/data
+    environment:
+      MINIO_ROOT_USER: 'minio'
+      MINIO_ROOT_PASSWORD: 'miniostorage'
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+    networks:
+      - stack
+
+  # https-portal:
+  #   image: steveltn/https-portal
+  #   env_file: ./docker.env
+  #   ports:
+  #     - '80:80'
+  #     - '443:443'
+  #   restart: always
+  #   networks:
+  #     - stack
+  #   volumes:
+  #     - https-portal-data:/var/lib/https-portal
+  #   healthcheck:
+  #     test: ["CMD", "service", "nginx", "status"]
+  #     interval: 30s
+  #     timeout: 20s
+  #     retries: 3
+  #   environment:
+  #     DOMAINS: 'test-outline.net -> http://outline:3000'
+  #     STAGE: 'production'
+  #     WEBSOCKET: 'true'
+  #     CLIENT_MAX_BODY_SIZE: '0'
+
+networks:
+  stack:
+
