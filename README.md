@@ -1,5 +1,5 @@
 # Outline
-Outline is an open source document management tools alternative to Confluence and Notion. This repository will help you to run Outline with minimum dependency required to be run on your local environment. 
+Outline is an open source document management tools alternative to Confluence and Notion. This repository will help you to run Outline with minimum dependency required to be run on your local environment. Make sure you have [Docker](https://www.docker.com/) installed on your device
 
 *Originally from [this](https://github.com/outline/outline) repository*
 
