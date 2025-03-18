@@ -1,3 +1,8 @@
+# Outline
+Outline is an open source document management tools alternative to Confluence and Notion. 
+
+*Originally from [this](https://github.com/outline/outline) repository*
+
 <img width="1918" alt="Image" src="https://github.com/user-attachments/assets/a38d09de-c3a2-4536-b431-22f103ade3cd" />
 
 # How to run
