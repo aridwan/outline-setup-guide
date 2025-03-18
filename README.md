@@ -17,5 +17,6 @@ docker-compose up
 ```
 
 #### Access via browser \
-Now you can access you app via browser on `http://outline:3000`, but you won't be able to login because your `.env` file still not configured yet.
+Now you can access you app via browser on `http://outline:3000`, but you won't be able to login because your `.env` file still not configured yet. \
+Check (config)[https://github.com/aridwan/outline-setup-guide/blob/main/docs/CONFIG.md] page for more information.
 
